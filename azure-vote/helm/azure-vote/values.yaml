@@ -1,6 +1,7 @@
 # Default values for azure-vote.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+namespace: votingapp
 
 replicaCount: 1
 
@@ -8,7 +9,7 @@ image:
   repository: Malvearun/azure-voting-app
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: latest
+  tag: v2
 
 imagePullSecrets: []
 nameOverride: ""

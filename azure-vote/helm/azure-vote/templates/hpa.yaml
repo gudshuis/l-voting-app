@@ -3,6 +3,7 @@ apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "azure-vote.fullname" . }}
+  namespace: {{ .Values.namespace }}
   labels:
     {{- include "azure-vote.labels" . | nindent 4 }}
 spec:

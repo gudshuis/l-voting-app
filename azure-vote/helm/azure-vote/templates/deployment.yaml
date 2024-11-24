@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: azure-vote-deployment
+  namespace: {{ .Values.namespace }}
   labels:
     app: azure-vote
 spec:
