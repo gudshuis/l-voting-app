@@ -1,6 +1,6 @@
 variables:
   - name: containerRegistryServiceConnection
-    value: votingapptest
+    value: votingapp
   - name: imageRepository
     value: crvoteapptestuks
   - name: containerRegistry
