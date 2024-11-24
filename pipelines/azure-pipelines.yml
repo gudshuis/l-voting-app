@@ -63,6 +63,6 @@ stages:
           containerRegistryServiceConnection: ${{ variables.containerRegistryServiceConnection }}
           imageRepository: ${{ variables.imageRepository }}
           containerRegistry: ${{ variables.containerRegistry }}
-          k8sNamespace: ${{ variables.k8sNamespace }}
+          k8sNamespace: votingapp
           imagePullSecret: ${{ variables.imagePullSecret }}
           tag: $(Build.BuildId)

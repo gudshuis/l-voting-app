@@ -68,13 +68,18 @@ jobs:
               displayName: Update image reference in manifest for Proxmox
 
             # Step to deploy to Proxmox Kubernetes cluster
+            - bash: |
+                # Apply the manifest to the Proxmox cluster using kubectl with the correct namespace
+                kubectl apply -f $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml --namespace votingapp
+              displayName: Deploy to Proxmox Kubernetes cluster using kubectl
+
             - task: KubernetesManifest@0
-              displayName: Deploy to Proxmox Kubernetes cluster
+              displayName: Deploy to Proxmox Kubernetes cluster using KubernetesManifest
               inputs:
                 action: deploy
                 kubernetesServiceConnection: 'az-k8s'
                 manifests: |
                   $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml
                 imagePullSecrets: |
-                  $(imagePullSecret)  # Use the existing image pull secret for Proxmox
-                  namespace: votingapp
+                  $(imagePullSecret)
+                namespace:  votingapp #votingapp Explicitly set the namespace to "votingapp"
