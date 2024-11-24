@@ -1,0 +1,24 @@
+
+trigger:
+- main
+variables:
+   - template: variables/var.yml
+stages:
+  - template: stages/ci.yml
+    parameters:
+        containerRegistryServiceConnection: ${{ variables.containerRegistryServiceConnection }}
+        imageRepository: ${{ variables.imageRepository }}
+        containerRegistry: ${{ variables.containerRegistry }}
+        dockerfilePath: ${{variables.dockerfilePath }}
+        tag: $(Build.BuildId)
+  # - template: stages/cd.yml
+  #   parameters:
+  #       containerRegistryServiceConnection: ${{ variables.containerRegistryServiceConnection }}
+  #       imageRepository: ${{ variables.imageRepository }}
+  #       containerRegistry: ${{ variables.containerRegistry }}
+  #       dockerfilePath: ${{variables.dockerfilePath }}
+  #       tag: $(Build.BuildId)
+  #       k8sNamespace: ${{ variables.k8sNamespace }}
+  #       imagePullSecret: ${{ variables.imagePullSecret }}
+
+

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: azure-vote-deployment
+  labels:
+    app: azure-vote
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: azure-vote
+  template:
+    metadata:
+      labels:
+        app: azure-vote
+    spec:
+      containers:
+      - name: azure-vote
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+        env:
+        - name: TITLE
+          value: "{{ .Values.env.TITLE }}"
+        - name: VOTE1VALUE
+          value: "{{ .Values.env.VOTE1VALUE }}"
+        - name: VOTE2VALUE
+          value: "{{ .Values.env.VOTE2VALUE }}"
+        - name: SHOWHOST
+          value: "{{ .Values.env.SHOWHOST }}"
+        - name: REDIS_URL
+          value: "redis://redis:6379/0"
+        resources: {}

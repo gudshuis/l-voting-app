@@ -1,0 +1,49 @@
+
+parameters:
+  - name: containerRegistryServiceConnection
+    default: 'votingapptest'
+  - name: imageRepository
+    default: 'crvoteapptestuks'
+  - name: containerRegistry
+    default: 'crvoteapptestuks.azurecr.io'
+  - name: dockerfilePath
+    default: 'test/azure-vote/Dockerfile'
+  - name: tag
+    default: 'test tag'
+  - name: k8sNamespace
+    default: 'votingapp'
+  - name: imagePullSecret
+    default: 'crvoteapptestuks1337cc55-auth'
+
+stages:
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+
+  jobs:
+  - deployment: Deploy
+    # condition: 
+    displayName: Deploy to AKS cluster
+    pool:
+      vmImage: ubuntu-latest
+    environment: 'dpatel7azurevotingappredis-1669.votingapp'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            displayName: Create imagePullSecret
+            inputs:
+              action: createSecret
+              secretName: $(imagePullSecret)
+              dockerRegistryEndpoint: $(containerRegistryServiceConnection)
+          - task: KubernetesManifest@0
+            displayName: Deploy to Kubernetes cluster
+            inputs:
+              action: deploy
+              manifests: |
+               $(Pipeline.Workspace)/votingappManifest/*.yaml
+              imagePullSecrets: |
+                $(imagePullSecret)
+
+    

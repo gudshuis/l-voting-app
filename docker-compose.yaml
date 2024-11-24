@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  azure-vote-back:
+    image: mcr.microsoft.com/oss/bitnami/redis:6.0.8
+    container_name: azure-vote-back
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "6379:6379"
+    networks:
+      - voteapp-network
+
+  azure-vote-front:
+    build: ./azure-vote
+    container_name: azure-vote-front
+    environment:
+      REDIS: azure-vote-back
+    ports:
+      - "8080:80"
+    networks:
+      - voteapp-network
+
+networks:
+  voteapp-network:
+    driver: bridge

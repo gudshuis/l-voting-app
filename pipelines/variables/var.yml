@@ -1,0 +1,16 @@
+variables:
+  - name: containerRegistryServiceConnection
+    value: votingapptest
+  - name: imageRepository
+    value: crvoteapptestuks
+  - name: containerRegistry
+    value: crvoteapptestuks.azurecr.io
+  - name: dockerfilePath
+    value: '$(Build.SourcesDirectory)/azure-vote/Dockerfile'
+  - name: tag
+    value: '$(Build.BuildId)'
+  - name: k8sNamespace
+    value: votingapp
+  - name: imagePullSecret
+    value: crvoteapptestuks1337cc55-auth
+
