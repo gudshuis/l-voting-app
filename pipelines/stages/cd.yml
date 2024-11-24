@@ -77,3 +77,4 @@ jobs:
                   $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml
                 imagePullSecrets: |
                   $(imagePullSecret)  # Use the existing image pull secret for Proxmox
+                  namespace: $(k8sNamespace)
