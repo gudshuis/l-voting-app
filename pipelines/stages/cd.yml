@@ -48,7 +48,7 @@ jobs:
   #                 $(Pipeline.Workspace)/azure-vote-all-in-one-redis.yaml
   #               imagePullSecrets: |
   #                 $(imagePullSecret)
-
+  
   - deployment: DeployToProxmox
     displayName: Deploy to Proxmox Kubernetes cluster
     pool:
@@ -67,12 +67,13 @@ jobs:
                 sed -ie "s|image: mcr.microsoft.com/azuredocs/azure-vote-front:v1|image: $imageName|g" $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml
               displayName: Update image reference in manifest for Proxmox
 
-            # Step to deploy to Proxmox Kubernetes cluster
+            # Step to deploy to Proxmox Kubernetes cluster using kubectl
             - bash: |
                 # Apply the manifest to the Proxmox cluster using kubectl with the correct namespace
-                kubectl apply -f $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml --namespace votingapp
+                kubectl apply -f $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml --namespace $(k8sNamespace) --validate=false
               displayName: Deploy to Proxmox Kubernetes cluster using kubectl
 
+            # Step to deploy using KubernetesManifest task
             - task: KubernetesManifest@0
               displayName: Deploy to Proxmox Kubernetes cluster using KubernetesManifest
               inputs:
@@ -82,4 +83,4 @@ jobs:
                   $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml
                 imagePullSecrets: |
                   $(imagePullSecret)
-                namespace:  votingapp #votingapp Explicitly set the namespace to "votingapp"
+                namespace: votingapp  # Explicitly set the namespace to "votingapp"
