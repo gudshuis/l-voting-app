@@ -72,7 +72,7 @@ jobs:
               displayName: Deploy to Proxmox Kubernetes cluster
               inputs:
                 action: deploy
-                kubernetesServiceConnection: $(kubernetesServiceConnection)  # Use the correct service connection for Proxmox
+                kubernetesServiceConnection: 'az-k8s'
                 manifests: |
                   $(Pipeline.Workspace)/azure-vote-all-in-one-redis.yaml
                 imagePullSecrets: |
