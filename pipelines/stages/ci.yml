@@ -32,9 +32,23 @@ jobs:
           containerRegistry: ${{ parameters.containerRegistryServiceConnection }}
           tags: ${{ parameters.tag }}
 
+  - job: RunUnitTests
+    displayName: Run Unit Tests
+    dependsOn: Build 
+    pool:
+      name: 'Default'
+      demands:
+        - agent.name -equals BuildAgent
+    steps:
+      - bash: |
+          echo "Running unit tests..."
+          chmod +x test.sh
+          ./test.sh
+        displayName: Execute Unit Tests
+
   - job: GenerateCIVersion
     displayName: Generate CI Version
-    dependsOn: Build  # Ensures that this job runs after the Build job
+    dependsOn: RunUnitTests 
     steps:
       - bash: |
           buildRef="voteapp_$(Build.BuildId)_$(date +'%d%m%y%T')"
