@@ -1,24 +1,61 @@
-
 trigger:
-- main
+  - main
+
 variables:
-   - template: variables/var.yml
+  - template: variables/var.yml
+
 stages:
-  - template: stages/ci.yml
-    parameters:
-        containerRegistryServiceConnection: ${{ variables.containerRegistryServiceConnection }}
-        imageRepository: ${{ variables.imageRepository }}
-        containerRegistry: ${{ variables.containerRegistry }}
-        dockerfilePath: ${{variables.dockerfilePath }}
-        tag: $(Build.BuildId)
-  # - template: stages/cd.yml
-  #   parameters:
-  #       containerRegistryServiceConnection: ${{ variables.containerRegistryServiceConnection }}
-  #       imageRepository: ${{ variables.imageRepository }}
-  #       containerRegistry: ${{ variables.containerRegistry }}
-  #       dockerfilePath: ${{variables.dockerfilePath }}
-  #       tag: $(Build.BuildId)
-  #       k8sNamespace: ${{ variables.k8sNamespace }}
-  #       imagePullSecret: ${{ variables.imagePullSecret }}
+  - stage: ApproveRelease_Build
+    displayName: Approve Release Build
+    jobs:
+      - deployment: ReviewRelease_App
+        pool: Default
+        environment: Approval-Updates
+        continueOnError: false
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "Deploying Application after approval"
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'Manual'))
 
+  - stage: CI_Build
+    displayName: CI Build Stage
+    dependsOn: ApproveRelease_Build
+    jobs:
+      - template: stages/ci.yml
+        parameters:
+          containerRegistryServiceConnection: ${{ variables.containerRegistryServiceConnection }}
+          imageRepository: ${{ variables.imageRepository }}
+          containerRegistry: ${{ variables.containerRegistry }}
+          dockerfilePath: ${{ variables.dockerfilePath }}
+          tag: $(Build.BuildId)
 
+  - stage: ApproveRelease_Deploy
+    displayName: Approve Release Deploy
+    dependsOn: CI_Build
+    jobs:
+      - deployment: DeployApproval
+        pool: Default
+        environment: Approval-Deploy
+        continueOnError: false
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "Deploying Application after approval"
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'Manual'))
+
+  - stage: CD_Deploy
+    displayName: CD Deploy Stage
+    dependsOn: ApproveRelease_Deploy
+    jobs:
+      - template: stages/cd.yml
+        parameters:
+          containerRegistryServiceConnection: ${{ variables.containerRegistryServiceConnection }}
+          imageRepository: ${{ variables.imageRepository }}
+          containerRegistry: ${{ variables.containerRegistry }}
+          dockerfilePath: ${{ variables.dockerfilePath }}
+          tag: $(Build.BuildId)
+          k8sNamespace: ${{ variables.k8sNamespace }}
+          imagePullSecret: ${{ variables.imagePullSecret }}

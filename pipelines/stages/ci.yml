@@ -1,12 +1,12 @@
 parameters:
   - name: containerRegistryServiceConnection
-    default: 'votingapptest'
+    default: 'votingapp'
   - name: imageRepository
     default: 'crvoteapptestuks'
   - name: containerRegistry
     default: 'crvoteapptestuks.azurecr.io'
   - name: dockerfilePath
-    default: 'test/azure-vote/Dockerfile'
+    default: '/azure-vote/Dockerfile'
   - name: tag
     default: 'test tag'
 stages:
@@ -16,13 +16,13 @@ stages:
   - job: Build
     displayName: Build image job
     pool:
-      vmImage: ubuntu-latest
+      vmImage: Default
     steps:
     - task: Docker@2
       displayName: Login to ACR
       inputs:
         command: login
-        containerRegistry: 'votingapptest'
+        containerRegistry: 'votingapp'
     - task: Docker@2
       displayName: Build and push an image to ACR
       inputs:

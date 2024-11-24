@@ -1,13 +1,13 @@
 
 parameters:
   - name: containerRegistryServiceConnection
-    default: 'votingapptest'
+    default: 'votingapp'
   - name: imageRepository
     default: 'crvoteapptestuks'
   - name: containerRegistry
     default: 'crvoteapptestuks.azurecr.io'
   - name: dockerfilePath
-    default: 'test/azure-vote/Dockerfile'
+    default: '/azure-vote/Dockerfile'
   - name: tag
     default: 'test tag'
   - name: k8sNamespace
@@ -26,7 +26,7 @@ stages:
     displayName: Deploy to AKS cluster
     pool:
       vmImage: ubuntu-latest
-    environment: 'dpatel7azurevotingappredis-1669.votingapp'
+    environment: 'malveazurevotingappredis-1669.votingapp'
     strategy:
       runOnce:
         deploy:
