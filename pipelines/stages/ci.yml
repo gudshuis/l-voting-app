@@ -9,56 +9,58 @@ parameters:
     default: '/azure-vote/Dockerfile'
   - name: tag
     default: 'test tag'
+
 stages:
-- stage: Build
-  displayName: Build and push docker image
-  jobs:  
-  - job: Build
-    displayName: Build image job
-    pool:
-      vmImage: Default
-    steps:
-    - task: Docker@2
-      displayName: Login to ACR
-      inputs:
-        command: login
-        containerRegistry: 'votingapp'
-    - task: Docker@2
-      displayName: Build and push an image to ACR
-      inputs:
-        command: buildAndPush
-        repository: ${{ parameters.imageRepository }}
-        dockerfile: ${{ parameters.dockerfilePath }}
-        containerRegistry: ${{ parameters.containerRegistryServiceConnection}}
-        tags: ${{ parameters.tag }}
-  - job: GenerateCIVersion
-    steps:
-    - bash:  |
-        buildRef="voteapp_$(Build.BuildId)_$(date +'%d%m%y%T')"
-        buildRef=${buildRef//:/_}
-        echo $buildRef
-        echo "##vso[task.setvariable variable=buildName;isOutput=true]$buildRef"
-      name: buildName
-  - job: PublishBuildArtifacts
-    dependsOn: GenerateCIVersion
-    variables:
-      varFromGenerateCIVersion: $[ dependencies.GenerateCIVersion.outputs['buildName.buildName'] ]
-    steps:
-    - bash:  |
-        imageName="${{ parameters.containerRegistry }}\/${{ parameters.imageRepository }}:${{ parameters.tag }}"
-        sed -ie "s/image: mcr.microsoft.com\/azuredocs\/azure-vote-front:v1/image: $imageName/g" azure-vote-all-in-one-redis.yaml
-      name: replaceImagetag
-    - bash:  |
-        echo 'new file name is $(varFromGenerateCIVersion)'
-        cp -v azure-vote-all-in-one-redis.yaml '$(Build.ArtifactStagingDirectory)/$(varFromGenerateCIVersion).yaml'
-      name: renameManifest
-    - task: PublishBuildArtifacts@1
-      displayName: PublishArtifacts
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'votingappManifest'
-        publishLocation: 'Container'
-        
+  - stage: Build
+    displayName: Build and push docker image
+    jobs:  
+      - job: Build
+        displayName: Build image job
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: Docker@2
+            displayName: Login to ACR
+            inputs:
+              command: login
+              containerRegistry: ${{ parameters.containerRegistryServiceConnection }}
+          - task: Docker@2
+            displayName: Build and push an image to ACR
+            inputs:
+              command: buildAndPush
+              repository: ${{ parameters.imageRepository }}
+              dockerfile: ${{ parameters.dockerfilePath }}
+              containerRegistry: ${{ parameters.containerRegistryServiceConnection }}
+              tags: ${{ parameters.tag }}
 
+  - stage: GenerateVersion
+    displayName: Generate Version and Publish Build Artifacts
+    jobs:
+      - job: GenerateCIVersion
+        steps:
+          - bash: |
+              buildRef="voteapp_$(Build.BuildId)_$(date +'%d%m%y%T')"
+              buildRef=${buildRef//:/_}
+              echo $buildRef
+              echo "##vso[task.setvariable variable=buildName;isOutput=true]$buildRef"
+            name: buildName
 
-
+      - job: PublishBuildArtifacts
+        dependsOn: GenerateCIVersion
+        variables:
+          varFromGenerateCIVersion: $[ dependencies.GenerateCIVersion.outputs['buildName.buildName'] ]
+        steps:
+          - bash: |
+              imageName="${{ parameters.containerRegistry }}\/${{ parameters.imageRepository }}:${{ parameters.tag }}"
+              sed -ie "s/image: mcr.microsoft.com\/azuredocs\/azure-vote-front:v1/image: $imageName/g" azure-vote-all-in-one-redis.yaml
+            name: replaceImagetag
+          - bash: |
+              echo 'new file name is $(varFromGenerateCIVersion)'
+              cp -v azure-vote-all-in-one-redis.yaml '$(Build.ArtifactStagingDirectory)/$(varFromGenerateCIVersion).yaml'
+            name: renameManifest
+          - task: PublishBuildArtifacts@1
+            displayName: PublishArtifacts
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'votingappManifest'
+              publishLocation: 'Container'

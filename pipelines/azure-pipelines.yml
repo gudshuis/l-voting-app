@@ -9,7 +9,8 @@ stages:
     displayName: Approve Release Build
     jobs:
       - deployment: ReviewRelease_App
-        pool: Default
+        pool:
+          vmImage: 'ubuntu-latest'
         environment: Approval-Updates
         continueOnError: false
         strategy:
@@ -36,7 +37,8 @@ stages:
     dependsOn: CI_Build
     jobs:
       - deployment: DeployApproval
-        pool: Default
+        pool:
+          vmImage: 'ubuntu-latest'
         environment: Approval-Deploy
         continueOnError: false
         strategy:
