@@ -34,6 +34,7 @@ jobs:
 
   - job: GenerateCIVersion
     displayName: Generate CI Version
+    dependsOn: Build  # Ensures that this job runs after the Build job
     steps:
       - bash: |
           buildRef="voteapp_$(Build.BuildId)_$(date +'%d%m%y%T')"
@@ -43,7 +44,8 @@ jobs:
         name: buildName
 
   - job: PublishBuildArtifacts
-    dependsOn: GenerateCIVersion
+    displayName: Publish Build Artifacts
+    dependsOn: GenerateCIVersion  # Ensures that this job runs after the GenerateCIVersion job
     variables:
       varFromGenerateCIVersion: $[ dependencies.GenerateCIVersion.outputs['buildName.buildName'] ]
     steps:
