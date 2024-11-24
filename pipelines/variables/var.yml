@@ -12,5 +12,5 @@ variables:
   - name: k8sNamespace
     value: votingapp
   - name: imagePullSecret
-    value: crvoteapptestuks1337cc55-auth
+    value: crvoteapptestuks-auth
 

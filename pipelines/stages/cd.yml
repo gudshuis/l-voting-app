@@ -5,36 +5,80 @@ parameters:
     default: 'crvoteapptestuks'
   - name: containerRegistry
     default: 'crvoteapptestuks.azurecr.io'
-  - name: dockerfilePath
-    default: '/azure-vote/Dockerfile'
-  - name: tag
-    default: 'test tag'
   - name: k8sNamespace
     default: 'votingapp'
   - name: imagePullSecret
-    default: 'crvoteapptestuks1337cc55-auth'
+    default: 'crvoteapptestuks-auth'
+  - name: kubernetesServiceConnection
+    default: 'az-k8s' 
+  - name: tag
+    default: '$(Build.BuildId)'  
 
 jobs:
-  - deployment: Deploy
+  - deployment: DeployToAKS
     displayName: Deploy to AKS cluster
     pool:
-      vmImage: 'ubuntu-latest'
-    environment: 'malveazurevotingappredis.votingapp'
+      name: 'Default'  
+      demands:
+        - agent.name -equals BuildAgent
+    environment: 'Approval-Deploy'
     strategy:
       runOnce:
         deploy:
           steps:
             - task: KubernetesManifest@0
-              displayName: Create imagePullSecret
+              displayName: Create imagePullSecret in AKS
               inputs:
                 action: createSecret
                 secretName: $(imagePullSecret)
                 dockerRegistryEndpoint: $(containerRegistryServiceConnection)
+
+            - bash: |
+                # Update the image reference in the manifest dynamically for AKS
+                imageName="${{ parameters.containerRegistry }}/$(imageRepository):$(tag)"
+                sed -ie "s|image: mcr.microsoft.com/azuredocs/azure-vote-front:v1|image: $imageName|g" azure-vote-all-in-one-redis.yaml
+              displayName: Update image reference in manifest for AKS
+
             - task: KubernetesManifest@0
-              displayName: Deploy to Kubernetes cluster
+              displayName: Deploy to AKS
               inputs:
                 action: deploy
+                kubernetesServiceConnection: $(kubernetesServiceConnection)  # Use the correct service connection for AKS
                 manifests: |
-                  $(Pipeline.Workspace)/votingappManifest/*.yaml
+                  $(Pipeline.Workspace)/azure-vote-all-in-one-redis.yaml
+                imagePullSecrets: |
+                  $(imagePullSecret)
+
+  - deployment: DeployToProxmox
+    displayName: Deploy to Proxmox Kubernetes cluster
+    pool:
+      name: 'Default'  
+      demands:
+        - agent.name -equals BuildAgent
+    environment: 'Approval-Deploy'  
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: KubernetesManifest@0
+              displayName: Create imagePullSecret in Proxmox
+              inputs:
+                action: createSecret
+                secretName: $(imagePullSecret)
+                dockerRegistryEndpoint: $(containerRegistryServiceConnection)
+
+            - bash: |
+                # Update the image reference in the manifest dynamically for Proxmox
+                imageName="${{ parameters.containerRegistry }}/$(imageRepository):$(tag)"
+                sed -ie "s|image: mcr.microsoft.com/azuredocs/azure-vote-front:v1|image: $imageName|g" azure-vote-all-in-one-redis.yaml
+              displayName: Update image reference in manifest for Proxmox
+
+            - task: KubernetesManifest@0
+              displayName: Deploy to Proxmox Kubernetes cluster
+              inputs:
+                action: deploy
+                kubernetesServiceConnection: $(kubernetesServiceConnection)  # Use the correct service connection for Proxmox
+                manifests: |
+                  $(Pipeline.Workspace)/azure-vote-all-in-one-redis.yaml
                 imagePullSecrets: |
                   $(imagePullSecret)

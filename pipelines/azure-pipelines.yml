@@ -10,7 +10,9 @@ stages:
     jobs:
       - deployment: ReviewRelease_App
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'  
+          demands:
+            - agent.name -equals BuildAgent 
         environment: Approval-Updates
         continueOnError: false
         strategy:
@@ -32,13 +34,16 @@ stages:
           dockerfilePath: ${{ variables.dockerfilePath }}
           tag: $(Build.BuildId)
 
+
   - stage: ApproveRelease_Deploy
     displayName: Approve Release Deploy
     dependsOn: CI_Build
     jobs:
       - deployment: DeployApproval
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'  
+          demands:
+            - agent.name -equals BuildAgent  
         environment: Approval-Deploy
         continueOnError: false
         strategy:
@@ -48,16 +53,16 @@ stages:
                 - script: echo "Deploying Application after approval"
     condition: and(succeeded(), eq(variables['Build.Reason'], 'Manual'))
 
-  # - stage: CD_Deploy
-  #   displayName: CD Deploy Stage
-  #   dependsOn: ApproveRelease_Deploy
-  #   jobs:
-  #     - template: stages/cd.yml
-  #       parameters:
-  #         containerRegistryServiceConnection: ${{ variables.containerRegistryServiceConnection }}
-  #         imageRepository: ${{ variables.imageRepository }}
-  #         containerRegistry: ${{ variables.containerRegistry }}
-  #         dockerfilePath: ${{ variables.dockerfilePath }}
-  #         tag: $(Build.BuildId)
-  #         k8sNamespace: ${{ variables.k8sNamespace }}
-  #         imagePullSecret: ${{ variables.imagePullSecret }}
+
+  - stage: CD_Deploy
+    displayName: CD Deploy Stage
+    dependsOn: ApproveRelease_Deploy
+    jobs:
+      - template: stages/cd.yml
+        parameters:
+          containerRegistryServiceConnection: ${{ variables.containerRegistryServiceConnection }}
+          imageRepository: ${{ variables.imageRepository }}
+          containerRegistry: ${{ variables.containerRegistry }}
+          k8sNamespace: ${{ variables.k8sNamespace }}
+          imagePullSecret: ${{ variables.imagePullSecret }}
+          tag: $(Build.BuildId)
