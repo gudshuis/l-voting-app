@@ -64,7 +64,7 @@ jobs:
             - bash: |
                 # Dynamically update the image reference in the manifest
                 imageName="${{ parameters.containerRegistry }}/$(imageRepository):$(tag)"
-                sed -ie "s|image: mcr.microsoft.com/azuredocs/azure-vote-front:v1|image: $imageName|g" azure-vote-all-in-one-redis.yaml
+                sed -ie "s|image: mcr.microsoft.com/azuredocs/azure-vote-front:v1|image: $imageName|g" $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml
               displayName: Update image reference in manifest for Proxmox
 
             # Step to deploy to Proxmox Kubernetes cluster
@@ -74,6 +74,6 @@ jobs:
                 action: deploy
                 kubernetesServiceConnection: 'az-k8s'
                 manifests: |
-                  $(Pipeline.Workspace)/azure-vote-all-in-one-redis.yaml
+                  $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml
                 imagePullSecrets: |
                   $(imagePullSecret)  # Use the existing image pull secret for Proxmox
