@@ -25,42 +25,42 @@ jobs:
       - script: |
           echo "This is a test deployment job successfull."
           echo "Deployment successful!"
-          echo "check acr reepo for the image is pushed successfully"
+          echo "check acr repo for the image is pushed successfully"
         displayName: Echo Deployment Success
 
-  # - deployment: DeployToAKS
-  #   displayName: Deploy to AKS cluster
-  #   pool:
-  #     name: 'Default'  
-  #     demands:
-  #       - agent.name -equals BuildAgent
-  #   environment: 'Approval-Deploy'
-  #   strategy:
-  #     runOnce:
-  #       deploy:
-  #         steps:
-  #           - task: KubernetesManifest@0
-  #             displayName: Create imagePullSecret in AKS
-  #             inputs:
-  #               action: createSecret
-  #               secretName: $(imagePullSecret)
-  #               dockerRegistryEndpoint: $(containerRegistryServiceConnection)
+  - deployment: DeployToAKS
+    displayName: Deploy to AKS cluster
+    pool:
+      name: 'Default'  
+      demands:
+        - agent.name -equals BuildAgent
+    environment: 'Approval-Deploy'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: KubernetesManifest@0
+              displayName: Create imagePullSecret in AKS
+              inputs:
+                action: createSecret
+                secretName: $(imagePullSecret)
+                dockerRegistryEndpoint: $(containerRegistryServiceConnection)
 
-  #           - bash: |
-  #               # Update the image reference in the manifest dynamically for AKS
-  #               imageName="${{ parameters.containerRegistry }}/$(imageRepository):$(tag)"
-  #               sed -ie "s|image: mcr.microsoft.com/azuredocs/azure-vote-front:v1|image: $imageName|g" azure-vote-all-in-one-redis.yaml
-  #             displayName: Update image reference in manifest for AKS
+            - bash: |
+                # Update the image reference in the manifest dynamically for AKS
+                imageName="${{ parameters.containerRegistry }}/$(imageRepository):$(tag)"
+                sed -ie "s|image: mcr.microsoft.com/azuredocs/azure-vote-front:v1|image: $imageName|g" azure-vote-all-in-one-redis.yaml
+              displayName: Update image reference in manifest for AKS
 
-  #           - task: KubernetesManifest@0
-  #             displayName: Deploy to AKS
-  #             inputs:
-  #               action: deploy
-  #               kubernetesServiceConnection: $(kubernetesServiceConnection)  # Use the correct service connection for AKS
-  #               manifests: |
-  #                 $(Pipeline.Workspace)/azure-vote-all-in-one-redis.yaml
-  #               imagePullSecrets: |
-  #                 $(imagePullSecret)
+            - task: KubernetesManifest@0
+              displayName: Deploy to AKS
+              inputs:
+                action: deploy
+                kubernetesServiceConnection: $(kubernetesServiceConnection)  # Use the correct service connection for AKS
+                manifests: |
+                  $(Pipeline.Workspace)/azure-vote-all-in-one-redis.yaml
+                imagePullSecrets: |
+                  $(imagePullSecret)
   
   # - deployment: DeployToProxmox
   #   displayName: Deploy to Proxmox Kubernetes cluster
@@ -83,7 +83,7 @@ jobs:
   #           # Step to deploy to Proxmox Kubernetes cluster using kubectl
   #           - bash: |
   #               # Apply the manifest to the Proxmox cluster using kubectl with the correct namespace
-  #               kubectl apply -f $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml --namespace $(k8sNamespace) --validate=false
+  #               kubectl apply -f $(Build.SourcesDirectory)/azure-vote-all-in-one-redis.yaml --namespace $(k8sNamespace)
   #             displayName: Deploy to Proxmox Kubernetes cluster using kubectl
 
   #           # Step to deploy using KubernetesManifest task

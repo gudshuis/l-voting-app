@@ -31,6 +31,8 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
+      imagePullSecrets:
+        - name: my-docker-secret  # Reference to the secret for pulling images
 ---
 apiVersion: v1
 kind: Service
@@ -57,7 +59,7 @@ spec:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 1
-  minReadySeconds: 5 
+  minReadySeconds: 5
   template:
     metadata:
       labels:
@@ -67,7 +69,8 @@ spec:
         "kubernetes.io/os": linux
       containers:
       - name: azure-vote-front
-        image: mcr.microsoft.com/azuredocs/azure-vote-front:v1
+        image: gudshuis/azure-vote-app:v1  # Corrected repository name
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
         resources:
@@ -87,8 +90,10 @@ metadata:
   name: azure-vote-front
   namespace: votingapp
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
   - port: 80
+    targetPort: 80
+    nodePort: 31990  # You can specify a port here or let Kubernetes assign one
   selector:
     app: azure-vote-front
